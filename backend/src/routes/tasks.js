@@ -55,7 +55,7 @@ router.post("/", requireManager, asyncH(async (req, res) => {
   if (!project || !title) throw new HttpError(400, "Project and title are required");
   if (!deadline) throw new HttpError(400, "Deadline is required");
   const proj = await Project.findOneAndUpdate(
-    { _id: project }, { $inc: { nextNum: 1 } }, { new: false }
+    { _id: project }, { $inc: { nextNum: 1 } }, { returnDocument: "before" }
   );
   if (!proj) throw new HttpError(404, "Project not found");
   const num = proj.nextNum; // value BEFORE increment
