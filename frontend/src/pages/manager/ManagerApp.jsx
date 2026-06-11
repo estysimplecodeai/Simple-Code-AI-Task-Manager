@@ -3,7 +3,6 @@ import Sidebar from "../../components/ui/Sidebar";
 import TopBar from "../../components/ui/TopBar";
 import TaskDetailModal from "../../components/task/TaskDetailModal";
 import Btn from "../../components/ui/Btn";
-import { EmptyState } from "../../components/ui/misc";
 import { useAuth } from "../../auth/AuthContext";
 import { useData } from "../../store/DataContext";
 import { isStale } from "../../lib/derive";
@@ -11,6 +10,10 @@ import Dashboard from "./Dashboard";
 import Approvals from "./Approvals";
 import StaleTasks from "./StaleTasks";
 import SpaceView from "./SpaceView";
+import Team from "./Team";
+import CreateTaskModal from "./CreateTaskModal";
+import ManageMembersModal from "./ManageMembersModal";
+import CreateProjectModal from "./CreateProjectModal";
 
 export default function ManagerApp() {
   const { user, logout } = useAuth();
@@ -20,9 +23,10 @@ export default function ManagerApp() {
   const [nav, setNav] = useState({ view: "dashboard", projectId: null, subView: "board" });
 
   // modal state
-  const [openTaskId, setOpenTaskId] = useState(null);     // TaskDetailModal (manager mode)
-  const [createTaskOpen, setCreateTaskOpen] = useState(false); // TODO(5.5): <CreateTaskModal/>
-  const [manageMembersProjectId, setManageMembersProjectId] = useState(null); // TODO(5.5): <ManageMembersModal/>
+  const [openTaskId, setOpenTaskId] = useState(null);         // TaskDetailModal (manager mode)
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [manageMembersProjectId, setManageMembersProjectId] = useState(null);
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
   function handleNavigate(view, projectId, subView) {
     setNav({ view, projectId: projectId || null, subView: subView || "board" });
@@ -120,11 +124,9 @@ export default function ManagerApp() {
     if (nav.view === "space" && nav.projectId) {
       return (
         <div style={{ display: "flex", gap: 8 }}>
-          {/* TODO(5.5): <ManageMembersModal projectId={manageMembersProjectId} onClose={() => setManageMembersProjectId(null)} /> */}
           <Btn kind="secondary" size="sm" icon="user-plus" onClick={() => setManageMembersProjectId(nav.projectId)}>
             Manage members
           </Btn>
-          {/* TODO(5.5): <CreateTaskModal defaultProjectId={nav.projectId} onClose={() => setCreateTaskOpen(false)} /> */}
           <Btn kind="primary" size="sm" icon="plus" onClick={() => setCreateTaskOpen(true)}>
             New task
           </Btn>
@@ -177,8 +179,7 @@ export default function ManagerApp() {
             <StaleTasks onOpenTask={setOpenTaskId} />
           )}
           {nav.view === "team" && (
-            // TODO(5.5): Replace with <Team /> component
-            <EmptyState icon="users" title="Team — coming" sub="Team management will be available in the next release." />
+            <Team onNewSpace={() => setCreateProjectOpen(true)} />
           )}
           {nav.view === "space" && nav.projectId && (
             <SpaceView
@@ -199,8 +200,21 @@ export default function ManagerApp() {
         />
       )}
 
-      {/* TODO(5.5): <CreateTaskModal open={createTaskOpen} defaultProjectId={nav.view==="space"?nav.projectId:null} onClose={() => setCreateTaskOpen(false)} /> */}
-      {/* TODO(5.5): <ManageMembersModal open={!!manageMembersProjectId} projectId={manageMembersProjectId} onClose={() => setManageMembersProjectId(null)} /> */}
+      {createTaskOpen && (
+        <CreateTaskModal
+          defaultProjectId={nav.view === "space" ? nav.projectId : null}
+          onClose={() => setCreateTaskOpen(false)}
+        />
+      )}
+      {manageMembersProjectId && (
+        <ManageMembersModal
+          projectId={manageMembersProjectId}
+          onClose={() => setManageMembersProjectId(null)}
+        />
+      )}
+      {createProjectOpen && (
+        <CreateProjectModal onClose={() => setCreateProjectOpen(false)} />
+      )}
     </div>
   );
 }
