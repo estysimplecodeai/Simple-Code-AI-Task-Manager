@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Project = require("../models/Project");
+const User = require("../models/User");
 const { asyncH, HttpError } = require("../middleware/error");
 const { requireAuth, requireManager } = require("../middleware/auth");
 
@@ -35,6 +36,10 @@ router.patch("/:id/members", requireManager, asyncH(async (req, res) => {
   if (!Array.isArray(members)) throw new HttpError(400, "members must be an array of user ids");
   const project = await Project.findById(req.params.id);
   if (!project) throw new HttpError(404, "Project not found");
+  if (members.length > 0) {
+    const found = await User.find({ _id: { $in: members }, role: "developer" }).select("_id");
+    if (found.length !== members.length) throw new HttpError(400, "All members must be valid developers");
+  }
   project.members = members;
   await project.save();
   res.json({ project: projectJson(project) });

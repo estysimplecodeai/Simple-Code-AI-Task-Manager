@@ -74,3 +74,31 @@ test("manager patch can change deadline; developer cannot patch", async () => {
   const denied = await api().patch(`/api/tasks/${t.id}`).set(auth(dtoken)).send({ title: "hacked" });
   expect(denied.status).toBe(403);
 });
+
+// C1: cross-project task leak via ?project= query param
+test("developer cannot filter tasks by a project they are not a member of", async () => {
+  const { mtoken, dtoken, other, otoken, proj } = await setup();
+  // Create a second project that 'other' is NOT a member of (only manager sees it)
+  const proj2 = (await api().post("/api/projects").set(auth(mtoken)).send({ name: "Secret", key: "SECRET" })).body.project;
+  // Add a task to the second project
+  await api().post("/api/tasks").set(auth(mtoken)).send({ project: proj2.id, title: "Hidden task", deadline: "2026-06-20" });
+  // Developer (member of proj, not proj2) requesting tasks filtered by proj2 → 403
+  const res = await api().get(`/api/tasks?project=${proj2.id}`).set(auth(dtoken));
+  expect(res.status).toBe(403);
+  // Developer CAN filter by the project they ARE a member of
+  const t = (await api().post("/api/tasks").set(auth(mtoken)).send({ project: proj.id, title: "Visible task", deadline: "2026-06-20" })).body.task;
+  const res2 = await api().get(`/api/tasks?project=${proj.id}`).set(auth(dtoken));
+  expect(res2.status).toBe(200);
+  expect(res2.body.tasks.length).toBe(1);
+  expect(res2.body.tasks[0].id).toBe(t.id);
+});
+
+// I1: assignee must be a project member
+test("creating a task with a non-member assignee returns 400", async () => {
+  const { mtoken, other, proj } = await setup();
+  // 'other' is NOT a member of proj
+  const res = await api().post("/api/tasks").set(auth(mtoken)).send({
+    project: proj.id, title: "Bad assignee", assignee: other.id, deadline: "2026-06-20",
+  });
+  expect(res.status).toBe(400);
+});

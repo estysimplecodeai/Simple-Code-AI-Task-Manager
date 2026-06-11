@@ -38,10 +38,12 @@ router.post("/", requireManager, asyncH(async (req, res) => {
 router.patch("/:id", requireManager, asyncH(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) throw new HttpError(404, "User not found");
+  if (user.role === "manager") throw new HttpError(400, "Cannot modify a manager account");
   const { action } = req.body;
   if (action === "disable") user.status = "disabled";
   else if (action === "enable") user.status = user.passwordHash ? "active" : "invited";
   else if (action === "reinvite") {
+    if (user.status === "active") throw new HttpError(400, "User is already active");
     const f = inviteFields();
     user.inviteToken = f.inviteToken; user.inviteExpires = f.inviteExpires;
     user.status = "invited"; user.passwordHash = null;

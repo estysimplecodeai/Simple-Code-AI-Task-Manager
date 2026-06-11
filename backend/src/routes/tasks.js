@@ -31,7 +31,11 @@ router.get("/", asyncH(async (req, res) => {
   const pids = await visibleProjectIds(req.user);
   const filter = {};
   if (pids) filter.project = { $in: pids };
-  if (req.query.project) filter.project = req.query.project;
+  if (req.query.project) {
+    if (pids && !pids.some((p) => p.equals(req.query.project)))
+      throw new HttpError(403, "No access to this project");
+    filter.project = req.query.project;
+  }
   const tasks = await Task.find(filter).sort({ createdAt: -1 });
   res.json({ tasks: tasks.map((t) => taskJson(t)) });
 }));
@@ -50,11 +54,13 @@ router.post("/", requireManager, asyncH(async (req, res) => {
   const { project, title, desc, assignee, priority, deadline, branch } = req.body;
   if (!project || !title) throw new HttpError(400, "Project and title are required");
   if (!deadline) throw new HttpError(400, "Deadline is required");
-  const proj = await Project.findById(project);
+  const proj = await Project.findOneAndUpdate(
+    { _id: project }, { $inc: { nextNum: 1 } }, { new: false }
+  );
   if (!proj) throw new HttpError(404, "Project not found");
-  const num = proj.nextNum;
-  proj.nextNum = num + 1;
-  await proj.save();
+  const num = proj.nextNum; // value BEFORE increment
+  if (assignee && !proj.members.some((m) => m.equals(assignee)))
+    throw new HttpError(400, "Assignee must be a project member");
   const task = await Task.create({
     key: `${proj.key}-${num}`, project: proj._id, title, desc: desc || "",
     assignee: assignee || null, priority: priority || "med", status: "todo",
@@ -80,6 +86,11 @@ router.patch("/:id/status", asyncH(async (req, res) => {
 router.patch("/:id", requireManager, asyncH(async (req, res) => {
   const task = await Task.findById(req.params.id);
   if (!task) throw new HttpError(404, "Task not found");
+  if (req.body.assignee !== undefined && req.body.assignee !== null) {
+    const proj = await Project.findById(task.project);
+    if (!proj || !proj.members.some((m) => m.equals(req.body.assignee)))
+      throw new HttpError(400, "Assignee must be a project member");
+  }
   const allowed = ["title", "desc", "assignee", "priority", "status", "deadline", "branch"];
   for (const k of allowed) {
     if (req.body[k] === undefined) continue;
@@ -132,4 +143,4 @@ router.post("/:id/extension/decide", requireManager, asyncH(async (req, res) => 
   res.json({ task: taskJson(task) });
 }));
 
-module.exports = { router, taskJson };
+module.exports = router;

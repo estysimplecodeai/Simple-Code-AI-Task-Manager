@@ -10,7 +10,8 @@ class HttpError extends Error {
 }
 
 function errorHandler(err, req, res, _next) {
-  const status = err.status || 500;
+  let status = err.status || 500;
+  if (err.name === "ValidationError" || err.name === "CastError") status = 400;
   if (status >= 500) console.error(err);
   res.status(status).json({ error: err.message || "Server error" });
 }

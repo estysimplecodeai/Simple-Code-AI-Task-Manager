@@ -40,3 +40,21 @@ test("manager sees all projects", async () => {
   const res = await api().get("/api/projects").set(auth(token));
   expect(res.body.projects.length).toBe(2);
 });
+
+// I2: PATCH /:id/members must reject non-existent or non-developer user ids
+test("setting members to a non-existent id returns 400", async () => {
+  const { token } = await mgr();
+  const proj = (await api().post("/api/projects").set(auth(token)).send({ name: "A", key: "A" })).body.project;
+  const fakeId = "000000000000000000000001";
+  const res = await api().patch(`/api/projects/${proj.id}/members`).set(auth(token)).send({ members: [fakeId] });
+  expect(res.status).toBe(400);
+});
+
+test("setting members to valid developer ids succeeds", async () => {
+  const { token } = await mgr();
+  const { user: dev } = await makeUser({ role: "developer", email: "dev@x.com" });
+  const proj = (await api().post("/api/projects").set(auth(token)).send({ name: "A", key: "A" })).body.project;
+  const res = await api().patch(`/api/projects/${proj.id}/members`).set(auth(token)).send({ members: [dev.id] });
+  expect(res.status).toBe(200);
+  expect(res.body.project.members).toContain(dev.id);
+});
