@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simple Code AI — Managing Engineer</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="scai-brand.css">
+<style>
+  html, body { margin: 0; height: 100%; background: var(--bg-1); overflow: hidden; }
+  #root { height: 100%; }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--bd-2); border-radius: 6px; border: 2px solid var(--bg-1); }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes scaiFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes scaiRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="scai-store.js"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="scai-ui.jsx"></script>
+<script type="text/babel" src="mgr-views.jsx"></script>
+<script type="text/babel" src="mgr-stale.jsx"></script>
+<script type="text/babel" src="mgr-modals.jsx"></script>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "density": "comfortable",
+  "headingFont": "neutral"
+}/*EDITMODE-END*/;
+
+function MgrSidebar({ view, spaceId, subView, onNav, onToggleSpace, expandedSpaces, pending, onNewTask, footer }) {
+  const state = useStore();
+  useIcons();
+  const staleCount = state.tasks.filter((t) => SCAI.isStale(t)).length;
+
+  function NavBtn({ id, icon, label, badge, active, danger }) {
+    return (
+      <button onClick={() => onNav(id)} style={{
+        display: "flex", alignItems: "center", gap: 9,
+        padding: active ? "8px 10px 8px 8px" : "8px 10px",
+        background: active ? (danger ? "rgba(207,34,46,0.06)" : "rgba(46,175,183,0.08)") : "transparent",
+        borderTop: "none", borderRight: "none", borderBottom: "none",
+        borderLeft: `2px solid ${active ? (danger ? "var(--danger)" : "var(--scai-teal)") : "transparent"}`,
+        borderRadius: active ? "0 var(--r-1) var(--r-1) 0" : "var(--r-1)",
+        color: active ? "var(--fg-1)" : "var(--fg-2)",
+        fontFamily: "var(--font-body)", fontSize: 13, fontWeight: active ? 500 : 400,
+        cursor: "pointer", textAlign: "left", width: "100%", transition: "background 120ms",
+      }}
+      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "rgba(0,0,0,0.04)"; e.currentTarget.style.color = "var(--fg-1)"; }}}
+      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--fg-2)"; }}}>
+        <Icon name={icon} size={15} style={{ color: active ? (danger ? "var(--danger)" : "var(--scai-teal)") : (danger && badge > 0 ? "var(--danger)" : "var(--fg-3)") }} />
+        <span style={{ flex: 1 }}>{label}</span>
+        {badge > 0 && <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: danger ? "var(--danger)" : "var(--scai-teal)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>{badge}</span>}
+      </button>
+    );
+  }
+
+  return (
+    <aside style={{ width: 234, flexShrink: 0, background: "var(--paper-2)", borderRight: "1px solid var(--bd-1)", display: "flex", flexDirection: "column", padding: "16px 12px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: -30, left: -20, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(46,175,183,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ padding: "6px 8px 16px", position: "relative" }}>
+        <img src="assets/scai-logo.png" alt="Simple Code AI" height="32" style={{ display: "block", mixBlendMode: "multiply", maxWidth: "100%", marginBottom: 6 }} />
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, letterSpacing: "0.22em", color: "var(--scai-teal)", textTransform: "uppercase", opacity: 0.8 }}>MANAGING ENGINEER</div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, position: "relative", marginBottom: 4 }}>
+        <NavBtn id="dashboard" icon="layout-dashboard" label="Dashboard" active={view === "dashboard"} badge={0} />
+        <NavBtn id="requests" icon="calendar-clock" label="Extension requests" active={view === "requests"} badge={pending} />
+        <NavBtn id="stale" icon="alert-triangle" label="Stale tasks" active={view === "stale"} badge={staleCount} danger={true} />
+      </div>
+
+      <div style={{ margin: "12px 0 6px", fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--fg-3)", padding: "0 10px", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ flex: 1 }}>Spaces</span>
+        <button onClick={onNewTask} title="New task" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 18, height: 18, background: "transparent", border: "1px solid var(--bd-2)", borderRadius: 3, cursor: "pointer", color: "var(--fg-3)" }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--scai-teal)"; e.currentTarget.style.color = "var(--scai-teal)"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--bd-2)"; e.currentTarget.style.color = "var(--fg-3)"; }}>
+          <Icon name="plus" size={11} />
+        </button>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 1, overflowY: "auto", flex: 1 }}>
+        {state.projects.map(p => {
+          const isOpen = expandedSpaces.has(p.id);
+          const isActiveSpace = view === "space" && spaceId === p.id;
+          const staleCount = state.tasks.filter(t => t.project === p.id && SCAI.isStale(t)).length;
+          const pendingExt = state.tasks.filter(t => t.project === p.id && t.ext && t.ext.state === "pending").length;
+
+          return (
+            <div key={p.id}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <button onClick={() => { onNav("space", p.id, subView || "board"); if (!isOpen) onToggleSpace(p.id); }}
+                  style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "7px 8px 7px 10px",
+                    background: isActiveSpace ? "rgba(46,175,183,0.06)" : "transparent",
+                    borderTop: "none", borderRight: "none", borderBottom: "none",
+                    borderLeft: `2px solid ${isActiveSpace ? "var(--scai-teal)" : "transparent"}`,
+                    borderRadius: "0 var(--r-1) var(--r-1) 0", cursor: "pointer", textAlign: "left" }}
+                  onMouseEnter={e => { if (!isActiveSpace) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                  onMouseLeave={e => { if (!isActiveSpace) e.currentTarget.style.background = "transparent"; }}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0, background: isActiveSpace ? "var(--scai-teal)" : "var(--fg-3)" }} />
+                  <span style={{ fontFamily: "var(--font-body)", fontSize: 12.5, fontWeight: isActiveSpace ? 600 : 400, color: isActiveSpace ? "var(--fg-1)" : "var(--fg-2)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</span>
+                  {staleCount > 0 && <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--danger)", background: "rgba(248,81,73,0.12)", border: "1px solid rgba(248,81,73,0.25)", borderRadius: 2, padding: "1px 5px" }}>{staleCount}</span>}
+                  {pendingExt > 0 && <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--scai-teal)", background: "rgba(46,175,183,0.12)", border: "1px solid rgba(46,175,183,0.25)", borderRadius: 2, padding: "1px 5px" }}>ext</span>}
+                </button>
+                <button onClick={() => onToggleSpace(p.id)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 28, background: "transparent", border: "none", cursor: "pointer", color: "var(--fg-3)", flexShrink: 0 }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--fg-1)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--fg-3)")}>
+                  <Icon name={isOpen ? "chevron-down" : "chevron-right"} size={12} />
+                </button>
+              </div>
+
+              {isOpen && (
+                <div style={{ paddingLeft: 20, display: "flex", flexDirection: "column", gap: 1, marginBottom: 4 }}>
+                  {[["board","kanban-square","Board"],["list","list","List"]].map(([sv,icon,label]) => {
+                    const active = isActiveSpace && subView === sv;
+                    return (
+                      <button key={sv} onClick={() => onNav("space", p.id, sv)}
+                        style={{ display: "flex", alignItems: "center", gap: 8, padding: active ? "6px 10px 6px 8px" : "6px 10px",
+                          background: active ? "rgba(46,175,183,0.10)" : "transparent",
+                          borderTop: "none", borderRight: "none", borderBottom: "none",
+                          borderLeft: `2px solid ${active ? "var(--scai-teal)" : "transparent"}`,
+                          borderRadius: "0 var(--r-1) var(--r-1) 0",
+                          color: active ? "var(--scai-teal)" : "var(--fg-3)",
+                          fontFamily: "var(--font-body)", fontSize: 12, fontWeight: active ? 600 : 400,
+                          cursor: "pointer", textAlign: "left", width: "100%" }}
+                        onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.color = "var(--fg-2)"; }}}
+                        onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--fg-3)"; }}}>
+                        <Icon name={icon} size={13} style={{ color: "currentColor" }} />
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {footer}
+    </aside>
+  );
+}
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const state = useStore();
+  const [view, setView] = useState("dashboard");
+  const [spaceId, setSpaceId] = useState(null);
+  const [subView, setSubView] = useState("board");
+  const [openId, setOpenId] = useState(null);
+  const [createFor, setCreateFor] = useState(undefined);
+  const [approve, setApprove] = useState(null);
+  const [manageId, setManageId] = useState(null);
+  const [expandedSpaces, setExpandedSpaces] = useState(() => new Set(state.projects.map(p => p.id)));
+  useIcons();
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--font-display",
+      t.headingFont === "neutral" ? '"Mona Sans", system-ui, sans-serif' : '"Newsreader", Georgia, serif');
+  }, [t.headingFont]);
+
+  const pending = SCAI.pendingExtensions().length;
+  const staleCount = state.tasks.filter(t => SCAI.isStale(t)).length;
+  const activeSpace = spaceId ? SCAI.projectById(spaceId) : null;
+
+  function onNav(v, pid, sv) {
+    if (v === "space") { setView("space"); setSpaceId(pid); setSubView(sv || "board"); }
+    else { setView(v); setSpaceId(null); }
+  }
+  function onToggleSpace(pid) {
+    setExpandedSpaces(prev => { const s = new Set(prev); s.has(pid) ? s.delete(pid) : s.add(pid); return s; });
+  }
+
+  const crumbBase = ["Simple Code AI", "Managing Engineer"];
+  const titles = {
+    dashboard: { title: "Dashboard",          lead: "Team health at a glance",    crumbs: [...crumbBase, "Dashboard"] },
+    requests:  { title: "Extension requests", lead: "Approve, adjust, or deny",   crumbs: [...crumbBase, "Requests"] },
+    stale:     { title: "Stale tasks",         lead: "Past deadline, not done",    crumbs: [...crumbBase, "Stale tasks"] },
+    space: {
+      title: activeSpace?.name || "",
+      lead: subView === "board" ? "Board" : "List",
+      crumbs: [...crumbBase, "Spaces", activeSpace?.name || "", subView === "board" ? "Board" : "List"],
+    },
+  };
+  const ti = titles[view] || titles.dashboard;
+
+  const footer = (
+    <div style={{ borderTop: "1px solid var(--bd-1)", paddingTop: 10, marginTop: 6 }}>
+      <a href="Simple Code AI - Developer.html" style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--font-body)", fontSize: 12, color: "var(--fg-2)", border: "1px solid var(--bd-2)", borderRadius: "var(--r-1)", padding: "7px 10px", marginBottom: 8, background: "var(--paper)", textDecoration: "none" }}>
+        <Icon name="code-2" size={14} style={{ color: "var(--scai-teal)" }} />
+        <span style={{ flex: 1 }}>Developer view</span>
+        <Icon name="arrow-up-right" size={13} style={{ color: "var(--fg-3)" }} />
+      </a>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 6px" }}>
+        <Avatar id="m_dana" size={28} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: "var(--font-body)", fontSize: 12.5, fontWeight: 600, color: "var(--fg-1)" }}>Dana Okafor</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--fg-3)" }}>Managing Engineer</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  let screen;
+  if (view === "dashboard") screen = <MgrDashboard onOpen={setOpenId} goTo={(v) => onNav(v)} />;
+  else if (view === "requests") screen = <MgrApprovals onDecide={(task, initial) => setApprove({ task, initial })} />;
+  else if (view === "stale") screen = <MgrStaleTasks onOpen={setOpenId} />;
+  else if (view === "space" && spaceId && subView === "board") screen = <MgrBoard onOpen={setOpenId} defaultProject={spaceId} />;
+  else if (view === "space" && spaceId) screen = <MgrTasks density={t.density} onOpen={setOpenId} onNew={() => setCreateFor(spaceId)} defaultProject={spaceId} />;
+  else screen = <MgrDashboard onOpen={setOpenId} goTo={(v) => onNav(v)} />;
+
+  return (
+    <div data-screen-label={"Manager / " + view} style={{ display: "flex", height: "100vh", background: "var(--bg-1)" }}>
+      <MgrSidebar view={view} spaceId={spaceId} subView={subView}
+        onNav={onNav} onToggleSpace={onToggleSpace} expandedSpaces={expandedSpaces}
+        pending={pending} onNewTask={() => setCreateFor(spaceId || "")} footer={footer} />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+        <TopBar crumbs={ti.crumbs} title={ti.title} lead={ti.lead}
+          right={
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {view === "space" && spaceId && <button onClick={() => setManageId(spaceId)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--paper)", border: "1px solid var(--bd-2)", borderRadius: "var(--r-1)", padding: "6px 11px", fontFamily: "var(--font-body)", fontSize: 12.5, color: "var(--fg-2)", cursor: "pointer" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--scai-teal)"; e.currentTarget.style.color = "var(--scai-teal)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--bd-2)"; e.currentTarget.style.color = "var(--fg-2)"; }}>
+                <Icon name="user-plus" size={14} /> Manage members
+              </button>}
+              {pending > 0 && view !== "requests" && (
+                <button onClick={() => onNav("requests")} style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(46,175,183,0.10)", border: "1px solid rgba(46,175,183,0.25)", borderRadius: "var(--r-1)", padding: "6px 11px", color: "var(--scai-teal)", fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, cursor: "pointer", letterSpacing: "0.02em" }}>
+                  <Icon name="hourglass" size={14} /> {pending} pending
+                </button>
+              )}
+              <Btn kind="primary" icon="plus" onClick={() => setCreateFor(spaceId || "")}>New task</Btn>
+            </div>
+          } />
+        {screen}
+      </div>
+
+      {openId && <MgrTaskDetail taskId={openId} onClose={() => setOpenId(null)} onReview={task => { setOpenId(null); setApprove({ task, initial: "approve" }); }} />}
+      {createFor !== undefined && <CreateTaskModal presetProject={createFor || undefined} onClose={() => setCreateFor(undefined)} />}
+      {approve && <ApprovalModal task={SCAI.taskById(approve.task.id)} initial={approve.initial} onClose={() => setApprove(null)} />}
+      {manageId && <ManageMembersModal projectId={manageId} onClose={() => setManageId(null)} />}
+
+      <ToastHost />
+      <TweaksPanel>
+        <TweakSection label="Density" />
+        <TweakRadio label="List rows" value={t.density} options={["comfortable", "compact"]} onChange={v => setTweak("density", v)} />
+        <TweakSection label="Demo" />
+        <TweakButton label="Reset demo data" onClick={() => { SCAI.resetDemo(); toast("Demo data reset"); }} />
+      </TweaksPanel>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+/* ============================================================
+   Simple Code AI CRM — Light Theme Brand Override
+   White backgrounds · near-black ink · SCAI teal accent
+   ============================================================ */
+
+:root {
+  /* ---- Brand primitives ---- */
+  --scai-teal:        #2eafb7;
+  --scai-teal-bright: #28a0a8;
+  --scai-teal-dim:    rgba(46, 175, 183, 0.12);
+  --scai-teal-glow:   0 0 0 3px rgba(46, 175, 183, 0.18);
+  --scai-teal-glow-sm:0 0 0 2px rgba(46, 175, 183, 0.14);
+  --scai-slate:       #1e2328;   /* near-black */
+  --scai-slate-light: #363b41;
+
+  /* ---- Surfaces ---- */
+  --paper:   #ffffff;
+  --paper-2: #f4f6f8;
+  --paper-3: #edf0f3;
+
+  /* ---- Sand / neutral scale ---- */
+  --sand-100: rgba(0, 0, 0, 0.035);   /* row hover */
+  --sand-200: rgba(0, 0, 0, 0.065);   /* button hover / group header */
+  --sand-300: #e2e6ea;
+  --sand-500: #c8cdd4;
+  --sand-700: #8a9099;
+
+  /* ---- Backgrounds ---- */
+  --bg-1: #eef0f3;
+  --bg-2: #e5e8ec;
+  --bg-3: var(--paper);
+  --bg-inv: var(--scai-slate);
+
+  /* ---- Text ---- */
+  --ink:   #0d1117;
+  --ink-2: #24292f;
+  --ink-3: #57606a;
+  --ink-4: #8c959f;
+  --ink-5: #d0d7de;
+
+  --fg-1: var(--ink);
+  --fg-2: var(--ink-3);
+  --fg-3: var(--ink-4);
+  --fg-inv: #ffffff;
+
+  /* ---- Borders ---- */
+  --bd-1: #d8dde3;
+  --bd-2: #c6cdd5;
+  --bd-3: #9aa0a8;
+  --bd-strong: var(--scai-teal);
+
+  /* ---- Teal/slate scale ---- */
+  --teal-900: #0d3d42;
+  --teal-800: #1e2328;   /* near-black — topbars, badges bg */
+  --teal-700: #2eafb7;   /* SCAI teal */
+  --teal-600: #28a0a8;
+  --teal-500: #3dbec6;
+  --teal-300: rgba(46, 175, 183, 0.35);
+  --teal-200: rgba(46, 175, 183, 0.18);
+  --teal-100: rgba(46, 175, 183, 0.09);
+
+  /* ---- Accent (CTA blue) = SCAI teal ---- */
+  --coral-700: #1c7b84;
+  --coral-600: #249aa4;
+  --coral-500: #2eafb7;
+  --coral-400: #4ec1c9;
+  --coral-200: rgba(46, 175, 183, 0.22);
+  --coral-100: rgba(46, 175, 183, 0.09);
+
+  /* ---- Semantic status ---- */
+  --success: #1a7f37;
+  --warning: #9a6700;
+  --danger:  #cf222e;
+
+  /* ---- Shadows ---- */
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.10), 0 12px 32px rgba(0,0,0,0.07);
+
+  /* ---- Radii ---- */
+  --r-0: 0;
+  --r-1: 4px;
+  --r-2: 8px;
+  --r-3: 12px;
+
+  /* ---- Brand ---- */
+  --brand:        var(--scai-teal);
+  --brand-hover:  var(--scai-teal-bright);
+  --accent:       var(--scai-teal);
+  --accent-fg:    #ffffff;
+  --accent-hover: var(--scai-teal-bright);
+}
+
+/* ---- Global base ---- */
+body {
+  background: var(--bg-1);
+  color: var(--fg-1);
+  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-body);
+}
+
+/* Remove dark dot-grid */
+body::before { display: none; }
+#root { position: static; z-index: auto; }
+
+/* Switch display to clean sans */
+:root { --font-display: "Mona Sans", system-ui, sans-serif; }
+
+/* Selection */
+::selection { background: rgba(46,175,183,0.22); color: #0d1117; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--bd-2); border-radius: 4px; border: 2px solid var(--bg-1); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Eyebrow — keep mono but darker on white */
+.eyebrow { font-family: var(--font-mono); letter-spacing: 0.13em; color: var(--ink-3); }
+
+/* code */
+code, kbd { background: var(--paper-3); border-color: var(--bd-1); color: var(--scai-teal); }
+
+hr { border-top-color: var(--bd-1); }
