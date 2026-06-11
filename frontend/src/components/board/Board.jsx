@@ -44,6 +44,7 @@ export default function Board({ tasks, onSetStatus, onOpenTask, onRequestExt, ca
               onDragStart={() => setDragged(t)}
               onClick={() => onOpenTask(t)}
               onRequestExt={onRequestExt ? () => onRequestExt(t) : undefined}
+              canRequestExt={canDrag(t)}
             />
           ))}
         </Column>

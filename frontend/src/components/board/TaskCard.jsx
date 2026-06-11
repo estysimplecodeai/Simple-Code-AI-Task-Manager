@@ -15,7 +15,7 @@ function resolvedIsStale(task) {
   return computeIsStale(task);
 }
 
-export default function TaskCard({ task, draggable, onClick, onDragStart, onRequestExt }) {
+export default function TaskCard({ task, draggable, onClick, onDragStart, onRequestExt, canRequestExt = true }) {
   const stale = resolvedIsStale(task);
   const left = resolvedDaysLeft(task);
   const isOverdue = left < 0 && task.status !== "done";
@@ -87,8 +87,8 @@ export default function TaskCard({ task, draggable, onClick, onDragStart, onRequ
         </div>
       )}
 
-      {/* Request extension button — shown when stale, not pending, and onRequestExt provided */}
-      {onRequestExt && stale && !pending && (
+      {/* Request extension button — shown when stale, not pending, onRequestExt provided, and this is the user's own task */}
+      {onRequestExt && stale && !pending && canRequestExt && (
         <button
           onClick={(e) => { e.stopPropagation(); onRequestExt(); }}
           style={{

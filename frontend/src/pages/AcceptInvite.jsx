@@ -128,7 +128,7 @@ export default function AcceptInvite() {
         )}
         {err && <div style={{ color: "var(--danger)", fontSize: 12.5, marginBottom: 10 }}>{err}</div>}
 
-        <Btn kind="primary" full disabled={!canSubmit}>
+        <Btn kind="primary" type="submit" full disabled={!canSubmit}>
           {busy ? "Setting password…" : "Set password & sign in"}
         </Btn>
       </form>

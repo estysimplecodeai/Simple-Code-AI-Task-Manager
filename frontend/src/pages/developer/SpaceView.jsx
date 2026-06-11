@@ -69,7 +69,7 @@ export default function SpaceView({ projectId, mode, onOpenTask, onRequestExt })
           canDrag={(t) => t.assignee === user?.id}
           onSetStatus={handleSetStatus}
           onOpenTask={(t) => onOpenTask(t.id !== undefined ? t.id : t)}
-          onRequestExt={onRequestExt}
+          onRequestExt={(t) => { if (t.assignee === user?.id) onRequestExt(t); }}
         />
       </div>
     );

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Icon } from "./icons";
 
-export default function Btn({ kind = "secondary", icon, children, onClick, disabled, size = "md", full, style }) {
+export default function Btn({ kind = "secondary", icon, children, onClick, disabled, size = "md", full, style, type = "button" }) {
   const elRef = useRef(null);
   const pad = size === "sm" ? "5px 10px" : size === "lg" ? "10px 18px" : "7px 13px";
   const fs = size === "sm" ? 11.5 : 13;
@@ -21,7 +21,7 @@ export default function Btn({ kind = "secondary", icon, children, onClick, disab
     "danger-solid":{ background: "#ffebe9",            color: "var(--danger)",  border: "1px solid #faa9a7" },
   };
   return (
-    <button ref={elRef} onClick={disabled ? undefined : onClick} disabled={disabled}
+    <button ref={elRef} type={type} onClick={disabled ? undefined : onClick} disabled={disabled}
       onMouseEnter={() => { const el = elRef.current; if (!disabled && el) {
         if (kind === "primary") { el.style.background = "var(--scai-teal-bright)"; }
         else if (kind === "teal") { el.style.background = "#2c3238"; }

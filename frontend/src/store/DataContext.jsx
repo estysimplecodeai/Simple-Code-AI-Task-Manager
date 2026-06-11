@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { UsersApi, ProjectsApi, TasksApi } from "../api/endpoints";
 import { useAuth } from "../auth/AuthContext";
+import { toast } from "../components/ui/Toast";
 
 const Ctx = createContext(null);
 
@@ -12,12 +13,17 @@ export function DataProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   const refresh = useCallback(async () => {
-    const calls = [ProjectsApi.list(), TasksApi.list()];
-    if (user?.role === "manager") calls.push(UsersApi.list());
-    const [p, t, u] = await Promise.all(calls);
-    setProjects(p.projects); setTasks(t.tasks);
-    if (u) setUsers(u.users);
-    setReady(true);
+    try {
+      const calls = [ProjectsApi.list(), TasksApi.list()];
+      if (user?.role === "manager") calls.push(UsersApi.list());
+      const [p, t, u] = await Promise.all(calls);
+      setProjects(p.projects); setTasks(t.tasks);
+      if (u) setUsers(u.users);
+    } catch (err) {
+      toast(err?.response?.data?.error || "Failed to load data", "danger");
+    } finally {
+      setReady(true);
+    }
   }, [user]);
 
   useEffect(() => { if (user) refresh(); }, [user, refresh]);

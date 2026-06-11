@@ -352,6 +352,9 @@ function ManagerTaskDetail({ task, onClose }) {
 
         <Field label="Assignee">
           <Select value={assignee} onChange={(e) => { setAssignee(e.target.value); saveField("assignee", e.target.value); }}>
+            {assignee && !members.includes(assignee) && (
+              <option value={assignee}>{personById(assignee)?.name || assignee} (not a member)</option>
+            )}
             {members.map((m) => (
               <option key={m} value={m}>{personById(m)?.name || m}</option>
             ))}

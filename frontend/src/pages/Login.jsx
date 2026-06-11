@@ -29,7 +29,7 @@ export default function Login() {
         <Field label="Email" required><TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus /></Field>
         <Field label="Password" required><TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
         {err && <div style={{ color: "var(--danger)", fontSize: 12.5, marginBottom: 10 }}>{err}</div>}
-        <Btn kind="primary" full disabled={busy}>{busy ? "Signing in…" : "Sign in"}</Btn>
+        <Btn kind="primary" type="submit" full disabled={busy}>{busy ? "Signing in…" : "Sign in"}</Btn>
       </form>
     </div>
   );
