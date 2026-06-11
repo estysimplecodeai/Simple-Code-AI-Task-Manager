@@ -10,7 +10,7 @@ function buildApp() {
 
   app.get("/api/health", (req, res) => res.json({ ok: true }));
 
-  // ROUTES MOUNTED HERE (auth, users, projects, tasks) in later tasks.
+  app.use("/api/auth", require("./routes/auth"));
 
   app.use(errorHandler);
   return app;
