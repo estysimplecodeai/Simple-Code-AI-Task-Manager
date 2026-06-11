@@ -12,6 +12,7 @@ function buildApp() {
 
   app.use("/api/auth", require("./routes/auth"));
   app.use("/api/users", require("./routes/users"));
+  app.use("/api/projects", require("./routes/projects"));
 
   app.use(errorHandler);
   return app;
