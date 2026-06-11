@@ -11,6 +11,7 @@ function buildApp() {
   app.get("/api/health", (req, res) => res.json({ ok: true }));
 
   app.use("/api/auth", require("./routes/auth"));
+  app.use("/api/users", require("./routes/users"));
 
   app.use(errorHandler);
   return app;
