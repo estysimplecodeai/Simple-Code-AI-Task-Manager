@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+    "dev:memory": "node src/server.memory.js",
     "seed": "node src/seed.js",
     "test": "cross-env NODE_ENV=test jest --runInBand"
   },
